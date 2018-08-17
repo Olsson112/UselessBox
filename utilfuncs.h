@@ -32,6 +32,11 @@ void shake(Servo servo, int degrees, int speed, int timesToShake) {
     shake(servo, degrees, speed, timesToShake, true);
 }
 
+void warningOpen(Servo servo, int degrees, int speed, int duration) {
+    move(servo, servo.servo.read() - degrees, speed);
+    delay(duration);
+    move(servo, servo.MaxClosed, speed);
+}
 
 void changeLight(int r, int g, int b) {
     analogWrite(ledpins[0], r);

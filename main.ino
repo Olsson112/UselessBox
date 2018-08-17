@@ -78,6 +78,8 @@ void shakeAndClose() {
     turnLightOff();
     move(Arm, armMaxClosed, 100);
     move(Head, headMaxClosed, 100);
+    delay(2000);
+    warningOpen(Head, 60, 100, 2000);
 } 
 
 void simpleSwitchOff() {
