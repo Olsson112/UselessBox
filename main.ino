@@ -1,7 +1,11 @@
 #include <VarSpeedServo.h>
+#include "utilfuncs.h"
 
 VarSpeedServo head; 
 VarSpeedServo arm;
+
+Servo Head;
+Servo Arm;
 
 int headMaxOpen = 90;
 int armMaxOpen = 12;
@@ -12,7 +16,11 @@ int armMaxClosed = 135;
 int armPosition = arm.read();
 int headPosition = head.read();
 
-const byte ledpins[3] = {9, 10, 11};
+typedef void (*sceneFunction)();
+
+const int sceneCount = 2;
+sceneFunction scenes[sceneCount] = { shakeAndClose, simpleSwitchOff };
+int sceneIteration = 0;
 
 void setup() {
 
@@ -32,102 +40,54 @@ void setup() {
     head.write(headMaxClosed, 70); 
     arm.write(armMaxClosed, 70); 
 
+    Head.servo = head;
+    Head.MaxOpen = headMaxOpen;
+    Head.MaxClosed = headMaxClosed;
+
+    Arm.servo = arm;
+    Arm.MaxOpen = armMaxOpen;
+    Arm.MaxClosed = armMaxClosed;
+
     //Delay before loop begins
     delay(2000);
 }
 
-bool first = true;
-
 void loop() {
     if(digitalRead(2)) {
-        if(first) {
-            simpleSwitchOff(90, 90, 90, 90);
-        } else {
-            shakeAndClose();
+        head.attach(5);
+        arm.attach(6);
+
+        sceneFunction scene = scenes[sceneIteration];
+        scene();
+        sceneIteration++;
+        if (sceneIteration >= sceneCount) {
+            sceneIteration = 0;
         }
-        first = !first;
+
+    } else {
+        arm.detach();
+        head.detach();
     }
 }
 
 void shakeAndClose() {
     turnLightOn();
-    shakeHead(70, 180, 10);
-    headUp(headMaxOpen, 180);
-    armUp(armMaxOpen, 100);
+    shake(Head, 70, 180, 10);
+    move(Head, headMaxOpen, 180);
+    move(Arm, armMaxOpen, 100);
     turnLightOff();
-    armDown(armMaxClosed, 100);
-    headDown(headMaxClosed, 100);
-}
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+} 
 
-void simpleSwitchOff(int headOpenSpeed, int armOpenSpeed, int armCloseSpeed, int headCloseSpeed) {
+void simpleSwitchOff() {
     turnLightOn();
-    headUp(headMaxOpen, headOpenSpeed); 
-    armUp(armMaxOpen, armOpenSpeed); 
+    move(Head, headMaxOpen, 150); 
+    move(Arm, armMaxOpen, 150); 
     delay(100);
     turnLightOff();
     delay(500);
-    armDown(armMaxClosed, armCloseSpeed); 
-    headDown(headMaxClosed, headCloseSpeed); 
+    move(Arm, armMaxClosed, 150); 
+    move(Head, headMaxClosed, 150); 
 }
 
-
-
-void shakeHead(int degrees, int speed, int timesToShake) {
-    bool shouldGoUp = true;
-    for(int i = 0; i <= timesToShake; i++) {
-        if (shouldGoUp) {
-            headUp(head.read() - degrees, speed);
-        } else {
-            headDown(head.read() + degrees, speed);
-        }
-        shouldGoUp = !shouldGoUp;
-    }
-}
-
-void shakeArm(int degrees, int speed, int timesToShake) {
-    bool shouldGoUp = true;
-    for(int i = 0; i <= timesToShake; i++) {
-        if (shouldGoUp) {
-            armUp(arm.read() - degrees, speed);
-        } else {
-            armDown(arm.read() + degrees, speed);
-        }
-        shouldGoUp = !shouldGoUp;
-    }
-}
-
-void turnLightOff() {
-    analogWrite(ledpins[0], 0);
-    analogWrite(ledpins[1], 0);
-    analogWrite(ledpins[2], 0);
-}
-
-void turnLightOn() {
-    analogWrite(ledpins[0], 255);
-    analogWrite(ledpins[1], 255);
-    analogWrite(ledpins[2], 255);
-}
-
-void headUp(int degrees, int speed) {
-    if(!(degrees > headMaxClosed || degrees < headMaxOpen)) {
-        head.write(degrees, speed, true);
-    }    
-}
-
-void headDown(int degrees, int speed) {
-    if(!(degrees > headMaxClosed || degrees < headMaxOpen)) {
-        head.write(degrees, speed, true);
-    }
-}
-
-void armUp(int degrees, int speed) {
-    if(!(degrees > armMaxClosed || degrees < armMaxOpen)) {
-        arm.write(degrees, speed, true);
-    }
-}
-
-void armDown(int degrees, int speed) {
-    if(!(degrees > armMaxClosed || degrees < armMaxOpen)) {
-        arm.write(degrees, speed, true);
-    }        
-}
