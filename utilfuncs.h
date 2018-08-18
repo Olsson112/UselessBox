@@ -24,6 +24,7 @@ void shake(Servo servo, int degrees, int speed, int timesToShake, bool shouldGoU
         } else {
             move(servo, servo.servo.read() + degrees, speed);
         }
+        delay(50);
         shouldGoUp = !shouldGoUp;
     }
 }
@@ -32,10 +33,16 @@ void shake(Servo servo, int degrees, int speed, int timesToShake) {
     shake(servo, degrees, speed, timesToShake, true);
 }
 
-void warningOpen(Servo servo, int degrees, int speed, int duration) {
-    move(servo, servo.servo.read() - degrees, speed);
+void warningOpen(Servo head, Servo arm, int degrees, int speed, int duration) {
+    move(head, head.servo.read() - degrees, speed);
     delay(duration);
-    move(servo, servo.MaxClosed, speed);
+    if(digitalRead(2)) {
+        move(arm, arm.MaxOpen, speed);
+        move(arm, arm.MaxClosed, speed);
+        move(head, head.MaxClosed, speed);
+    } else {
+        move(head, head.MaxClosed, speed);
+    }
 }
 
 void changeLight(int r, int g, int b) {

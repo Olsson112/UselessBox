@@ -7,20 +7,25 @@ VarSpeedServo arm;
 Servo Head;
 Servo Arm;
 
-int headMaxOpen = 90;
+int headMaxOpen = 100;
 int armMaxOpen = 12;
 
 int headMaxClosed = 170;
-int armMaxClosed = 135;
+int armMaxClosed = 140;
+
+int minHeadOpenForArmOpen = 115;
 
 int armPosition = arm.read();
 int headPosition = head.read();
 
+//For scenes:
 typedef void (*sceneFunction)();
 
-const int sceneCount = 2;
-sceneFunction scenes[sceneCount] = { shakeAndClose, simpleSwitchOff };
+const int sceneCount = 10;
 int sceneIteration = 0;
+
+sceneFunction scenes[sceneCount] = { mediumSwitchOff, fastSwitchOffLowHead, slowOpenAndFastClose, lowShakeAndClose, blockAndShakeHead, fastSwitchOff, blockAndShakeArm, fastSwitchOffLowHead, closeAndHold, highShakeAndClose};
+
 
 void setup() {
 
@@ -59,6 +64,7 @@ void loop() {
 
         sceneFunction scene = scenes[sceneIteration];
         scene();
+        delay(100);
         sceneIteration++;
         if (sceneIteration >= sceneCount) {
             sceneIteration = 0;
@@ -70,26 +76,115 @@ void loop() {
     }
 }
 
-void shakeAndClose() {
+void slowSwitchOff() {
     turnLightOn();
-    shake(Head, 70, 180, 10);
-    move(Head, headMaxOpen, 180);
-    move(Arm, armMaxOpen, 100);
+    move(Head, headMaxOpen, 60); 
+    move(Arm, armMaxOpen, 60); 
+    delay(100);
     turnLightOff();
-    move(Arm, armMaxClosed, 100);
-    move(Head, headMaxClosed, 100);
-    delay(2000);
-    warningOpen(Head, 60, 100, 2000);
-} 
+    delay(500);
+    move(Arm, armMaxClosed, 60); 
+    move(Head, headMaxClosed, 60); 
+}
 
-void simpleSwitchOff() {
+void mediumSwitchOff() {
+    turnLightOn();
+    move(Head, minHeadOpenForArmOpen, 100); 
+    move(Arm, armMaxOpen, 100); 
+    delay(100);
+    turnLightOff();
+    move(Arm, armMaxClosed, 100); 
+    move(Head, headMaxClosed, 100); 
+}
+
+void fastSwitchOff() {
     turnLightOn();
     move(Head, headMaxOpen, 150); 
     move(Arm, armMaxOpen, 150); 
     delay(100);
     turnLightOff();
-    delay(500);
     move(Arm, armMaxClosed, 150); 
     move(Head, headMaxClosed, 150); 
 }
+
+void fastSwitchOffLowHead() {
+    turnLightOn();
+    move(Head, minHeadOpenForArmOpen, 150); 
+    move(Arm, armMaxOpen, 150); 
+    delay(100);
+    turnLightOff();
+    move(Arm, armMaxClosed, 150); 
+    move(Head, headMaxClosed, 150); 
+}
+
+void highShakeAndClose() {
+    turnLightOn();
+    shake(Head, 70, 180, 8);
+    move(Head, headMaxOpen, 180);
+    move(Arm, armMaxOpen, 100);
+    turnLightOff();
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+    delay(500);
+    warningOpen(Head, Arm, 60, 100, 2000);
+} 
+
+void closeAndHold() {
+    turnLightOn();
+    move(Head, headMaxOpen, 150); 
+    move(Arm, armMaxOpen, 150); 
+    delay(100);
+    turnLightOff();
+    move(Head, headMaxClosed - 40, 100); 
+    delay(3000);
+    move(Head, headMaxOpen, 150); 
+    move(Arm, armMaxClosed, 150); 
+    move(Head, headMaxClosed, 150); 
+}
+
+void lowShakeAndClose() {
+    turnLightOn();
+    shake(Head, 40, 200, 10);
+    move(Head, headMaxOpen, 180);
+    move(Arm, armMaxOpen, 100);
+    turnLightOff();
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+    delay(1000);
+} 
+
+void blockAndShakeArm() {
+    turnLightOn();
+    move(Head, minHeadOpenForArmOpen, 180);
+    move(Arm, armMaxOpen, 100);
+    turnLightOff();
+    delay(1000);
+    shake(Arm, 40, 180, 9, false);
+    delay(500);
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+} 
+
+void blockAndShakeHead() {
+    turnLightOn();
+    move(Head, headMaxOpen, 180);
+    move(Arm, armMaxOpen, 100);
+    turnLightOff();
+    delay(1000);
+    shake(Head, 30, 180, 9, false);
+    delay(500);
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+}
+
+void slowOpenAndFastClose() {
+    turnLightOn();
+    move(Head, headMaxOpen, 30);
+    move(Arm, armMaxOpen, 180);
+    turnLightOff();
+    delay(200);
+    move(Arm, armMaxClosed, 100);
+    move(Head, headMaxClosed, 100);
+} 
+
 
